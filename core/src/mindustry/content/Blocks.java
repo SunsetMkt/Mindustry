@@ -43,7 +43,7 @@ public class Blocks{
     public static Block
 
     //environment
-    air, spawn, cliff, deepwater, water, taintedWater, deepTaintedWater, tar, slag, cryofluid, stone, craters, charr, sand, darksand, dirt, mud, ice, snow, darksandTaintedWater, space, empty,
+    air, spawn, removeWall, removeOre, cliff, deepwater, water, taintedWater, deepTaintedWater, tar, slag, cryofluid, stone, craters, charr, sand, darksand, dirt, mud, ice, snow, darksandTaintedWater, space, empty,
     dacite, rhyolite, rhyoliteCrater, roughRhyolite, regolith, yellowStone, redIce, redStone, denseRedStone,
     arkyciteFloor, arkyicStone,
     redmat, bluemat,
@@ -156,7 +156,7 @@ public class Blocks{
 
     //payloads
     payloadConveyor, payloadRouter, reinforcedPayloadConveyor, reinforcedPayloadRouter, payloadMassDriver, largePayloadMassDriver, smallDeconstructor, deconstructor, constructor, largeConstructor, payloadLoader, payloadUnloader,
-    
+
     //logic
     message, switchBlock, microProcessor, logicProcessor, hyperProcessor, largeLogicDisplay, logicDisplay, memoryCell, memoryBank,
     canvas, reinforcedMessage,
@@ -173,6 +173,10 @@ public class Blocks{
         air = new AirBlock("air");
 
         spawn = new SpawnBlock("spawn");
+
+        removeWall = new RemoveWall("remove-wall");
+
+        removeOre = new RemoveOre("remove-ore");
 
         cliff = new Cliff("cliff"){{
             inEditor = false;
@@ -1282,7 +1286,7 @@ public class Blocks{
             itemCapacity = 0;
             consumePower(100f / 60f);
         }};
-        
+
         slagHeater = new HeatProducer("slag-heater"){{
             requirements(Category.crafting, with(Items.tungsten, 50, Items.oxide, 20, Items.beryllium, 20));
 
@@ -1338,7 +1342,7 @@ public class Blocks{
         slagIncinerator = new ItemIncinerator("slag-incinerator"){{
             requirements(Category.crafting, with(Items.tungsten, 15));
             size = 1;
-            consumeLiquid(Liquids.slag, 2f / 60f);
+            consumeLiquid(Liquids.slag, 0f);
         }};
 
         carbideCrucible = new HeatCrafter("carbide-crucible"){{
@@ -1602,29 +1606,33 @@ public class Blocks{
         }};
 
         scrapWall = new Wall("scrap-wall"){{
-            requirements(Category.defense, BuildVisibility.sandboxOnly, with(Items.scrap, 6));
+            requirements(Category.defense, with(Items.scrap, 6));
             health = 60 * wallHealthMultiplier;
             variants = 5;
+            buildCostMultiplier = 4f;
         }};
 
         scrapWallLarge = new Wall("scrap-wall-large"){{
-            requirements(Category.defense, BuildVisibility.sandboxOnly, ItemStack.mult(scrapWall.requirements, 4));
+            requirements(Category.defense, ItemStack.mult(scrapWall.requirements, 4));
             health = 60 * 4 * wallHealthMultiplier;
             size = 2;
             variants = 4;
+            buildCostMultiplier = 4f;
         }};
 
         scrapWallHuge = new Wall("scrap-wall-huge"){{
-            requirements(Category.defense, BuildVisibility.sandboxOnly, ItemStack.mult(scrapWall.requirements, 9));
+            requirements(Category.defense, ItemStack.mult(scrapWall.requirements, 9));
             health = 60 * 9 * wallHealthMultiplier;
             size = 3;
             variants = 3;
+            buildCostMultiplier = 4f;
         }};
 
         scrapWallGigantic = new Wall("scrap-wall-gigantic"){{
-            requirements(Category.defense, BuildVisibility.sandboxOnly, ItemStack.mult(scrapWall.requirements, 16));
+            requirements(Category.defense, ItemStack.mult(scrapWall.requirements, 16));
             health = 60 * 16 * wallHealthMultiplier;
             size = 4;
+            buildCostMultiplier = 4f;
         }};
 
         thruster = new Thruster("thruster"){{
@@ -1896,14 +1904,14 @@ public class Blocks{
 
         plastaniumConveyor = new StackConveyor("plastanium-conveyor"){{
             requirements(Category.distribution, with(Items.plastanium, 1, Items.silicon, 1, Items.graphite, 1));
-            health = 75;
+            health = 90;
             speed = 4f / 60f;
             itemCapacity = 10;
         }};
 
         armoredConveyor = new ArmoredConveyor("armored-conveyor"){{
             requirements(Category.distribution, with(Items.plastanium, 1, Items.thorium, 1, Items.metaglass, 1));
-            health = 180;
+            health = 280;
             speed = 0.08f;
             displayedSpeed = 11f;
         }};
@@ -2871,7 +2879,7 @@ public class Blocks{
         //region storage
 
         coreShard = new CoreBlock("core-shard"){{
-            requirements(Category.effect, BuildVisibility.editorOnly, with(Items.copper, 1000, Items.lead, 800));
+            requirements(Category.effect, BuildVisibility.coreZoneOnly, with(Items.copper, 1000, Items.lead, 800));
             alwaysUnlocked = true;
 
             isFirstTier = true;
@@ -2879,6 +2887,7 @@ public class Blocks{
             health = 1100;
             itemCapacity = 4000;
             size = 3;
+            buildCostMultiplier = 2f;
 
             unitCapModifier = 8;
         }};
@@ -2991,7 +3000,7 @@ public class Blocks{
         reinforcedContainer = new StorageBlock("reinforced-container"){{
             requirements(Category.effect, with(Items.tungsten, 30, Items.graphite, 40));
             size = 2;
-            itemCapacity = 80;
+            itemCapacity = 160;
             scaledHealth = 120;
             coreMerge = false;
         }};
@@ -3405,7 +3414,7 @@ public class Blocks{
                     lightningLength = 10;
                 }}
             );
-            
+
             shoot = new ShootBarrel(){{
                 barrels = new float[]{
                     -4, -1.25f, 0,
@@ -4227,6 +4236,7 @@ public class Blocks{
 
             newTargetInterval = 40f;
             shootWarmupSpeed = 0.07f;
+            warmupMaintainTime = 120f;
 
             coolant = consume(new ConsumeLiquid(Liquids.water, 30f / 60f));
             coolantMultiplier = 1.5f;
@@ -4950,10 +4960,11 @@ public class Blocks{
             outlineColor = Pal.darkOutline;
             size = 5;
             envEnabled |= Env.space;
-            warmupMaintainTime = 30f;
+            warmupMaintainTime = 120f;
             reload = 100f;
             recoil = 2f;
             range = 300;
+            trackingRange = range * 1.4f;
             shootCone = 30f;
             scaledHealth = 350;
             rotateSpeed = 1.5f;
@@ -5276,7 +5287,7 @@ public class Blocks{
             velocityRnd = 0.15f;
             heatRequirement = 90f;
             maxHeatEfficiency = 2f;
-            warmupMaintainTime = 30f;
+            warmupMaintainTime = 120f;
             consumePower(10f);
 
             shoot = new ShootSummon(0f, 0f, circleRad, 48f);
@@ -5290,6 +5301,7 @@ public class Blocks{
             envEnabled |= Env.space;
             reload = 9f;
             range = 370;
+            trackingRange = range * 1.4f;
             shootCone = 100f;
             scaledHealth = 370;
             rotateSpeed = 2f;
@@ -5326,7 +5338,7 @@ public class Blocks{
             requirements(Category.units, with(Items.copper, 150, Items.lead, 130, Items.metaglass, 120));
             plans = Seq.with(
                 new UnitPlan(UnitTypes.risso, 60f * 45f, with(Items.silicon, 20, Items.metaglass, 35)),
-                new UnitPlan(UnitTypes.retusa, 60f * 50f, with(Items.silicon, 15, Items.metaglass, 25, Items.titanium, 20))
+                new UnitPlan(UnitTypes.retusa, 60f * 35f, with(Items.silicon, 15, Items.titanium, 20))
             );
             size = 3;
             consumePower(1.2f);
@@ -5786,6 +5798,7 @@ public class Blocks{
             itemCapacity = 0;
             alwaysUnlocked = true;
             ambientSound = Sounds.none;
+            allDatabaseTabs = true;
         }};
 
         //TODO move
@@ -5930,7 +5943,7 @@ public class Blocks{
 
         worldCell = new MemoryBlock("world-cell"){{
             requirements(Category.logic, BuildVisibility.worldProcessorOnly, with());
-            
+
             targetable = false;
             privileged = true;
             memoryCapacity = 128;
@@ -5939,7 +5952,7 @@ public class Blocks{
 
         worldMessage = new MessageBlock("world-message"){{
             requirements(Category.logic, BuildVisibility.worldProcessorOnly, with());
-            
+
             targetable = false;
             privileged = true;
         }};

@@ -220,13 +220,11 @@ public class CustomRulesDialog extends BaseDialog{
         check("@rules.wavesending", b -> rules.waveSending = b, () -> rules.waveSending, () -> rules.waves);
         check("@rules.wavetimer", b -> rules.waveTimer = b, () -> rules.waveTimer, () -> rules.waves);
         check("@rules.waitForWaveToEnd", b -> rules.waitEnemies = b, () -> rules.waitEnemies, () -> rules.waves && rules.waveTimer);
+        check("@rules.randomwaveai", b -> rules.randomWaveAI = b, () -> rules.randomWaveAI, () -> rules.waves);
         check("@rules.airUseSpawns", b -> rules.airUseSpawns = b, () -> rules.airUseSpawns, () -> rules.waves);
         numberi("@rules.wavelimit", f -> rules.winWave = f, () -> rules.winWave, () -> rules.waves, 0, Integer.MAX_VALUE);
         number("@rules.wavespacing", false, f -> rules.waveSpacing = f * 60f, () -> rules.waveSpacing / 60f, () -> rules.waves && rules.waveTimer, 1, Float.MAX_VALUE);
-        //this is experimental, because it's not clear that 0 makes it default.
-        if(experimental){
-            number("@rules.initialwavespacing", false, f -> rules.initialWaveSpacing = f * 60f, () -> rules.initialWaveSpacing / 60f, () -> rules.waves && rules.waveTimer, 0, Float.MAX_VALUE);
-        }
+        number("@rules.initialwavespacing", false, f -> rules.initialWaveSpacing = f * 60f, () -> rules.initialWaveSpacing / 60f, () -> rules.waves && rules.waveTimer, 0, Float.MAX_VALUE);
         number("@rules.dropzoneradius", false, f -> rules.dropZoneRadius = f * tilesize, () -> rules.dropZoneRadius / tilesize, () -> rules.waves);
 
         category("resourcesbuilding");
@@ -291,13 +289,11 @@ public class CustomRulesDialog extends BaseDialog{
         check("@rules.fog", b -> rules.fog = b, () -> rules.fog);
         check("@rules.lighting", b -> rules.lighting = b, () -> rules.lighting);
 
-        if(experimental){
-            check("@rules.limitarea", b -> rules.limitMapArea = b, () -> rules.limitMapArea);
-            numberi("x", x -> rules.limitX = x, () -> rules.limitX, () -> rules.limitMapArea, 0, 10000);
-            numberi("y", y -> rules.limitY = y, () -> rules.limitY, () -> rules.limitMapArea, 0, 10000);
-            numberi("w", w -> rules.limitWidth = w, () -> rules.limitWidth, () -> rules.limitMapArea, 0, 10000);
-            numberi("h", h -> rules.limitHeight = h, () -> rules.limitHeight, () -> rules.limitMapArea, 0, 10000);
-        }
+        check("@rules.limitarea", b -> rules.limitMapArea = b, () -> rules.limitMapArea);
+        numberi("x", x -> rules.limitX = x, () -> rules.limitX, () -> rules.limitMapArea, 0, 10000);
+        numberi("y", y -> rules.limitY = y, () -> rules.limitY, () -> rules.limitMapArea, 0, 10000);
+        numberi("w", w -> rules.limitWidth = w, () -> rules.limitWidth, () -> rules.limitMapArea, 0, 10000);
+        numberi("h", h -> rules.limitHeight = h, () -> rules.limitHeight, () -> rules.limitMapArea, 0, 10000);
 
         number("@rules.solarmultiplier", f -> rules.solarMultiplier = f, () -> rules.solarMultiplier);
 
@@ -329,7 +325,7 @@ public class CustomRulesDialog extends BaseDialog{
 
                 for(Planet planet : content.planets().select(p -> p.accessible && p.visible && p.isLandable())){
                     t.button(planet.localizedName, style, () -> {
-                        planet.applyRules(rules);
+                        planet.applyRules(rules, true);
                     }).group(group).checked(b -> rules.planet == planet);
 
                     if(t.getChildren().size % 3 == 0){
